@@ -2,6 +2,9 @@
 build: main.cpp blif2verilog.cpp
 	g++ -o blif2verilog main.cpp blif2verilog.cpp
 
+debug: main.cpp blif2verilog.cpp
+	g++ -g -o  blif2verilog main.cpp blif2verilog.cpp
+
 run: build
 	./blif2verilog
 

@@ -8,7 +8,10 @@ bool is_re(const string &str, const vector<string> &v);
 
 int main()
 {
-    ifstream file("../test1.blif");
+    string filename;
+    cout << "Enter the file name: ";
+    cin >> filename;
+    ifstream file(filename);
     if (!file.is_open())
     {
         cout << "Error: File not found" << endl;
@@ -18,7 +21,8 @@ int main()
     string line;
     while (getline(file, line))
     {
-        lines.push_back(line);
+        if (!line.empty())
+            lines.push_back(line);
     }
     file.close();
 
@@ -29,6 +33,8 @@ int main()
 
     for (auto it = lines.begin(); it < lines.end(); ++it)
     {
+        // if (it->empty())
+        //     continue;
         vector<string> tokens = split_blank(*it);
         if (tokens[0] == ".model")
         {
@@ -78,7 +84,7 @@ int main()
         ns[i].toExpr();
     }
 
-    ofstream ofile("../test.v");
+    ofstream ofile("../test2.v");
     ofile << "module " << m.getName() << "(clk, rst";
     for (string s : inputs.getInputs())
         ofile << ", " << s;
@@ -105,9 +111,9 @@ int main()
     }
     ofile << endl;
     // assign
-    for (names n: ns)
+    for (names n : ns)
     {
-        ofile <<  n.getExpr() << endl;
+        ofile << n.getExpr() << endl;
     }
     ofile << endl;
     ofile << "endmodule" << endl;
