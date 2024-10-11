@@ -84,7 +84,7 @@ int main()
         ns[i].toExpr();
     }
 
-    ofstream ofile("../test2.v");
+    ofstream ofile("../test.v");
     ofile << "module " << m.getName() << "(clk, rst";
     for (string s : inputs.getInputs())
         ofile << ", " << s;

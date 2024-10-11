@@ -71,3 +71,26 @@ public:
     void toExpr();
 };
 
+class cell
+{
+private:
+    vector<cell *> prev;
+    vector<cell *> next;
+    string op;
+    bool isnop;
+    string name;
+
+public:
+    cell(string name, string op, bool isnop);
+    cell();
+    ~cell();
+    void addPrev(cell *prev);
+    void addNext(cell *next);
+    vector<cell *> getPrev();
+    vector<cell *> getNext();
+    string getOp();
+    string getName();
+    bool getIsnop();
+};
+
+cell *vtog(string vfilename);
