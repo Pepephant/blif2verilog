@@ -3,7 +3,6 @@
 #include <sstream>
 using namespace std;
 
-vector<string> split_blank(const string &str);
 bool is_re(const string &str, const vector<string> &v);
 
 int main()
@@ -119,16 +118,6 @@ int main()
     ofile << "endmodule" << endl;
     ofile.close();
     return 0;
-}
-
-vector<string> split_blank(const string &str)
-{
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(str);
-    while (tokenStream >> token)
-        tokens.push_back(token);
-    return tokens;
 }
 
 // check if str is in v

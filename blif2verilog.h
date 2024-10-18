@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -76,12 +79,14 @@ class cell
 private:
     vector<cell *> prev;
     vector<cell *> next;
-    string op;
+    string op;  //如果该节点为null，则为单一元素，如果为！，则为 "！name",如果为 & 或 |，则为 "name = prev1 op prve2..."
     bool isnop;
-    string name;
+    string name; //如果该字段为null,则该cell为中间节点
 
 public:
     cell(string name, string op, bool isnop);
+    cell(string op, bool isnop);
+
     cell();
     ~cell();
     void addPrev(cell *prev);
@@ -91,6 +96,10 @@ public:
     string getOp();
     string getName();
     bool getIsnop();
+    
 };
 
+
 cell *vtog(string vfilename);
+
+vector<string> split_blank(const string &str);

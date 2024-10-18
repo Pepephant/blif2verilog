@@ -1,4 +1,7 @@
 #include "blif2verilog.h"
+#include <fstream>
+#include <sstream>
+
 
 class cell;
 
@@ -135,7 +138,11 @@ cell::cell(string name, string op, bool isnop)
     this->op = op;
     this->isnop = isnop;
 }
-
+cell::cell( string op, bool isnop)
+{
+    this->op = op;
+    this->isnop = isnop;
+}
 void cell::addNext(cell *next)
 {
     this->next.push_back(next);
@@ -192,7 +199,7 @@ cell *vtog(string vfilename)
     output outputs;
     vector<names> ns;
 
-    //解析blif文件转化为model、input、output、ns
+    // 解析blif文件转化为model、input、output、ns
     for (auto it = lines.begin(); it < lines.end(); ++it)
     {
         vector<string> tokens = split_blank(*it);
@@ -239,6 +246,134 @@ cell *vtog(string vfilename)
             ns.push_back(names(input, o, table));
         }
     }
+    // 遍历ns，生成cell
+    map<string, cell *> cells;
+    map<string, cell *> inputcell;
+    for (auto it = ns.begin(); it < ns.end(); ++it)
+    {
+        names n = *it;
+        input inputs = n.getInputs();
+        output outputs = n.getOutputs();
+        if (n.getValues().size() == 1) // 不需要中间节点
+        {
+            cell *c = new cell(outputs.getOutputs()[0], "&", false);
+            vector<int> value = n.getValues()[0];
+            for (auto it = value.begin(); it < value.end(); ++it)
+                if (*it == 1)
+                {
+                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], nullptr, false);
+                    c->addPrev(prev);
+                    prev->addNext(c);
+                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                        inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                }
+                else if (*it == 0)
+                {
+                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], "!", false);
+                    c->addPrev(prev);
+                    prev->addNext(c);
+                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                        inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                }
+            // cells.push_back(c);
+            cells.insert(pair<string, cell *>(c->getName(), c));
+        }
+        else // 需要中间节点
+        {
+            cell *c = new cell(outputs.getOutputs()[0], "|", false);
+            vector<vector<int>> values = n.getValues();
+            for (auto it = values.begin(); it < values.end(); ++it)
+            {
+                cell *iresult = new cell( "&", false);
+                for (auto it1 = it->begin(); it1 < it->end(); ++it1)
+                {
+                    if (*it1 == 1)
+                    {
+                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], nullptr, false);
+                        iresult->addPrev(prev);
+                        prev->addNext(iresult);
+                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                            inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                    }
+                    else if (*it1 == 0)
+                    {
+                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "!", false);
+                        iresult->addPrev(prev);
+                        prev->addNext(iresult);
+                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                            inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                    }
+                }
+                c->addPrev(iresult);
+                iresult->addNext(c);
+            }
+            cells.insert(pair<string, cell *>(c->getName(), c));
+        }
+    }
+    // 组成有向图
+    set<string> nsoutput;
+    for (auto it = ns.begin(); it < ns.end(); ++it)
+        nsoutput.insert(it->getOutputs().getOutputs()[0]);
+    // 得到中间节点
+    for (auto it = outputs.getOutputs().begin(); it < outputs.getOutputs().end(); ++it)
+    {
+        nsoutput.erase(*it);
+    }
+    // 拼接中间节点
+    for (auto it = nsoutput.begin(); it != nsoutput.end(); ++it)
+    {
+        for (auto ins = ns.begin(); ins < ns.end(); ++ins)
+        {
+            vector<string> inputs = ins->getInputs().getInputs();
+            if (find(inputs.begin(), inputs.end(), *it)!=inputs.end())
+            {
+                string output = ins->getOutputs().getOutputs()[0];
+                cell *prev = cells.find(*it)->second;
+                cell *next = cells.find(output)->second;
+                for (auto cprev = next->getPrev().begin(); cprev < next->getPrev().end(); ++cprev)
+                {
+                    if ((*cprev)->getName() == *it)
+                    {
+                        next->getPrev().erase(cprev);
+                        delete *cprev;
+                    }
+                }
+                next->addPrev(prev);
+                prev->addNext(next);
+            }
+        }
+    }
+    // 加上nop
+    cell *fnop = new cell("fnop", nullptr, true);
+    cell *hnop = new cell("hnop", nullptr, true);
+    vector<string> in = inputs.getInputs();
+    vector<string> out = outputs.getOutputs();
+    for (auto it = inputcell.begin(); it != inputcell.end(); ++it)
+    {
+        cell *bottom = it->second;
+        bottom->addPrev(fnop);
+        fnop->addNext(bottom);
+    }
+    for (auto it = out.begin(); it < out.end(); ++it)
+    {
+        cell *top = cells.find(*it)->second;
+        top->addNext(hnop);
+        hnop->addPrev(top);
+    }
+    return hnop;
+}
 
+cell::~cell()
+{
 
+}
+
+vector<string> split_blank(const string &str)
+{
+    vector<string> tokens;
+    string token;
+    istringstream tokenStream(str);
+    while (tokenStream >> token)
+        tokens.push_back(token);
+    return tokens;
 }

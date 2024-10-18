@@ -8,6 +8,12 @@ debug: main.cpp blif2verilog.cpp
 run: build
 	./blif2verilog
 
+tograph: diregraph.cpp blif2verilog.cpp
+	g++ -o diregraph diregraph.cpp blif2verilog.cpp
+
+tograph: diregraph.cpp blif2verilog.cpp
+	g++ -g -o diregraph diregraph.cpp blif2verilog.cpp
+
 clean:
 	rm blif2verilog
 	rm test.v
