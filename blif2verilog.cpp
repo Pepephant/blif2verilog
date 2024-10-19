@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 
-
 class cell;
 
 model::model(string name)
@@ -79,12 +78,7 @@ input names::getInputs()
 {
     return this->inputs;
 }
-
-output names::getOutputs()
-{
-    return this->outputs;
-}
-
+output names::getOutputs() { return this->outputs; }
 vector<vector<int>> names::getValues()
 {
     return this->values;
@@ -132,17 +126,29 @@ string names::getExpr()
     return this->expr;
 }
 
-cell::cell(string name, string op, bool isnop)
+cell::cell(string name, string op, bool isnop, int n)
 {
     this->name = name;
     this->op = op;
     this->isnop = isnop;
+    this->next.reserve(10);
+    this->prev.reserve(10);
+    this->n = n;
 }
-cell::cell( string op, bool isnop)
-{
-    this->op = op;
-    this->isnop = isnop;
-}
+// cell::cell(string op, bool isnop)
+// {
+//     this->op = op;
+//     this->isnop = isnop;
+// }
+// cell::cell(bool isnop)
+// {
+//     this->isnop = isnop;
+// }
+// cell::cell(bool isnop, string name)
+// {
+//     this->name = name;
+//     this->isnop = isnop;
+// }
 void cell::addNext(cell *next)
 {
     this->next.push_back(next);
@@ -161,20 +167,36 @@ string cell::getOp()
 {
     return this->op;
 }
+void cell::setOp(string op)
+{
+    this->op = op;
+}
+void cell::setName(string name)
+{
+    this->name = name;
+}
 
 bool cell::getIsnop()
 {
     return this->isnop;
 }
 
-vector<cell *> cell::getPrev()
+vector<cell *> &cell::getPrev()
 {
     return this->prev;
 }
 
-vector<cell *> cell::getNext()
+vector<cell *> &cell::getNext()
 {
     return this->next;
+}
+int cell::getN()
+{
+    return this->n;
+}
+void cell::setN(int n)
+{
+    this->n = n;
 }
 
 cell *vtog(string vfilename)
@@ -256,23 +278,23 @@ cell *vtog(string vfilename)
         output outputs = n.getOutputs();
         if (n.getValues().size() == 1) // 不需要中间节点
         {
-            cell *c = new cell(outputs.getOutputs()[0], "&", false);
+            cell *c = new cell(outputs.getOutputs()[0], "&", false, 1);
             vector<int> value = n.getValues()[0];
             for (auto it = value.begin(); it < value.end(); ++it)
                 if (*it == 1)
                 {
-                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], nullptr, false);
+                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], "p", false, 1);
                     c->addPrev(prev);
                     prev->addNext(c);
-                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                         inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                 }
                 else if (*it == 0)
                 {
-                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], "!", false);
+                    cell *prev = new cell(inputs.getInputs()[it - value.begin()], "p", false, 0);
                     c->addPrev(prev);
                     prev->addNext(c);
-                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                    if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                         inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                 }
             // cells.push_back(c);
@@ -280,27 +302,27 @@ cell *vtog(string vfilename)
         }
         else // 需要中间节点
         {
-            cell *c = new cell(outputs.getOutputs()[0], "|", false);
+            cell *c = new cell(outputs.getOutputs()[0], "|", false, 1);
             vector<vector<int>> values = n.getValues();
             for (auto it = values.begin(); it < values.end(); ++it)
             {
-                cell *iresult = new cell( "&", false);
+                cell *iresult = new cell("*", "&", false, 1);
                 for (auto it1 = it->begin(); it1 < it->end(); ++it1)
                 {
                     if (*it1 == 1)
                     {
-                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], nullptr, false);
+                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "p", false, 1);
                         iresult->addPrev(prev);
                         prev->addNext(iresult);
-                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                             inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                     }
                     else if (*it1 == 0)
                     {
-                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "!", false);
+                        cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "p", false, 0);
                         iresult->addPrev(prev);
                         prev->addNext(iresult);
-                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName())!=inputs.getInputs().end())
+                        if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                             inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                     }
                 }
@@ -315,37 +337,70 @@ cell *vtog(string vfilename)
     for (auto it = ns.begin(); it < ns.end(); ++it)
         nsoutput.insert(it->getOutputs().getOutputs()[0]);
     // 得到中间节点
-    for (auto it = outputs.getOutputs().begin(); it < outputs.getOutputs().end(); ++it)
-    {
-        nsoutput.erase(*it);
-    }
+    // for (auto it = outputs.getOutputs().begin(); it < outputs.getOutputs().end(); ++it)
+    // {
+    //     cout << *it << endl;
+    //     //nsoutput.erase(*it);
+    // }
+    for (string s : outputs.getOutputs())
+        nsoutput.erase(s);
+    // exit(0);
     // 拼接中间节点
     for (auto it = nsoutput.begin(); it != nsoutput.end(); ++it)
     {
         for (auto ins = ns.begin(); ins < ns.end(); ++ins)
         {
             vector<string> inputs = ins->getInputs().getInputs();
-            if (find(inputs.begin(), inputs.end(), *it)!=inputs.end())
+            if (find(inputs.begin(), inputs.end(), *it) != inputs.end())
             {
                 string output = ins->getOutputs().getOutputs()[0];
                 cell *prev = cells.find(*it)->second;
                 cell *next = cells.find(output)->second;
+                // auto cprev = next->getPrev().begin();
+                //  cout<<(*cprev)->getName()<<endl;
+                // cout<<next->getPrev()[0]->getName()<<endl;
+                // exit(0);
                 for (auto cprev = next->getPrev().begin(); cprev < next->getPrev().end(); ++cprev)
                 {
-                    if ((*cprev)->getName() == *it)
+                    // cell*
+                    if ((*cprev)->getName() == "*") // 中间节点
                     {
-                        next->getPrev().erase(cprev);
-                        delete *cprev;
+                        for (auto cprev1 = (*cprev)->getPrev().begin(); cprev1 < (*cprev)->getPrev().end(); ++cprev1)
+                        {
+                            if ((*cprev1)->getName() == (*it))
+                            {
+                                (*cprev)->addPrev(prev);
+                                prev->addNext(*cprev);
+                                if ((*cprev1)->getN() == 0)
+                                    prev->setN(0);
+                                (*cprev)->getPrev().erase(cprev1);
+                                // delete *cprev1;
+                            }
+                        }
                     }
+                    else if ((*cprev)->getName() == (*it)) // 单一节点
+                    {
+                        if((*cprev)->getN() == 0)
+                            prev->setN(0);
+                        next->getPrev().erase(cprev);
+                        /// delete *cprev;
+                        next->addPrev(prev);
+                        prev->addNext(next);
+                    }
+                    // if ((*cprev)->getName() == *it)
+                    // {
+                    //     next->getPrev().erase(cprev);
+                    //     delete *cprev;
+                    // }
                 }
-                next->addPrev(prev);
-                prev->addNext(next);
+                // next->addPrev(prev);
+                // prev->addNext(next);
             }
         }
     }
     // 加上nop
-    cell *fnop = new cell("fnop", nullptr, true);
-    cell *hnop = new cell("hnop", nullptr, true);
+    cell *fnop = new cell("fnop", "p", true, 1);
+    cell *hnop = new cell("hnop", "p", true, 1);
     vector<string> in = inputs.getInputs();
     vector<string> out = outputs.getOutputs();
     for (auto it = inputcell.begin(); it != inputcell.end(); ++it)
@@ -365,7 +420,6 @@ cell *vtog(string vfilename)
 
 cell::~cell()
 {
-
 }
 
 vector<string> split_blank(const string &str)
@@ -376,4 +430,19 @@ vector<string> split_blank(const string &str)
     while (tokenStream >> token)
         tokens.push_back(token);
     return tokens;
+}
+
+void print_tree(cell *root, int i)
+{
+    if (root == nullptr)
+        return;
+    string spaces(15, ' ');
+    cout << i;
+    cout << spaces << root->getName() + " " + root->getOp()+" ";
+    cout<<root->getN()<< endl;
+    vector<cell *> &prev = root->getPrev();
+    for (auto c : prev)
+    {
+        print_tree(c, i + 1);
+    }
 }
