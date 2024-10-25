@@ -9,7 +9,7 @@ using namespace std;
 
 class model
 {
-    
+
 private:
     string name;
 
@@ -22,7 +22,7 @@ public:
 
 class input
 {
-    
+
 private:
     vector<string> inputs;
 
@@ -35,7 +35,7 @@ public:
 
 class output
 {
-    
+
 private:
     vector<string> outputs;
 
@@ -49,7 +49,7 @@ public:
 
 class wire
 {
-    
+
 private:
     vector<string> wires;
 
@@ -61,7 +61,7 @@ public:
 
 class names
 {
-    
+
 private:
     input inputs;
     output outputs;
@@ -80,16 +80,18 @@ public:
 
 class cell
 {
-    
+
 private:
     vector<cell *> prev;
     vector<cell *> next;
-    string op;  //如果该节点为"p"，则为单一元素,如果为 & 或 |，则为 "name = prev1 op prve2..."
+    string op; // 如果该节点为"p"，则为单一元素,如果为 & 或 |，则为 "name = prev1 op prve2..."
     bool isnop;
-    string name; //如果该字段为"*",则该cell为中间节点
+    string name; // 如果该字段为"*",则该cell为中间节点
+
     // int n ;  //   0 = !
 
 public:
+    bool isd = false;
     cell(string name, string op, bool isnop, int n);
     // cell(string op, bool isnop);
     // cell(bool isnop);
@@ -99,23 +101,22 @@ public:
     ~cell();
     void addPrev(cell *prev);
     void addNext(cell *next);
-    vector<cell *>& getPrev();
-    vector<cell *>& getNext();
+    vector<cell *> &getPrev();
+    vector<cell *> &getNext();
     string getOp();
     string getName();
     bool getIsnop();
     void setOp(string op);
     void setName(string name);
+    void destory();
     // int getN();
     // void setN(int n);
-    
 };
-
 
 cell *vtog(std::string vfilename);
 
 std::vector<std::string> split_blank(const std::string &str);
 
-void print_tree(cell *root,int i);
+void print_tree(cell *root, int i);
 
 void destory(cell *root);

@@ -425,7 +425,8 @@ cell *vtog(string vfilename)
         top->addNext(hnop);
         hnop->addPrev(top);
     }
-    return hnop;
+    // return hnop;
+    return fnop;
 }
 
 cell::~cell()
@@ -457,6 +458,11 @@ void print_tree(cell *root, int i)
     }
 }
 
+void cell::destory()
+{
+    if(!this->isd)
+        delete this;
+}
 void destory(cell* root)
 {
     if(root == nullptr)
@@ -466,5 +472,5 @@ void destory(cell* root)
     {
         destory(c);
     }
-    delete root;    
+    root->destory();    
 }
