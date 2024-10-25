@@ -133,7 +133,7 @@ cell::cell(string name, string op, bool isnop, int n)
     this->isnop = isnop;
     this->next.reserve(10);
     this->prev.reserve(10);
-    this->n = n;
+    // this->n = n;
 }
 // cell::cell(string op, bool isnop)
 // {
@@ -190,14 +190,14 @@ vector<cell *> &cell::getNext()
 {
     return this->next;
 }
-int cell::getN()
-{
-    return this->n;
-}
-void cell::setN(int n)
-{
-    this->n = n;
-}
+// int cell::getN()
+// {
+//     return this->n;
+// }
+// void cell::setN(int n)
+// {
+//     this->n = n;
+// }
 
 cell *vtog(string vfilename)
 {
@@ -291,9 +291,14 @@ cell *vtog(string vfilename)
                 }
                 else if (*it == 0)
                 {
+                    cell *notcell = new cell("*","!",false,0);
                     cell *prev = new cell(inputs.getInputs()[it - value.begin()], "p", false, 0);
-                    c->addPrev(prev);
-                    prev->addNext(c);
+                    // c->addPrev(prev);
+                    // prev->addNext(c);
+                    notcell->addPrev(prev);
+                    prev->addNext(notcell);
+                    c->addPrev(notcell);
+                    notcell->addNext(c);
                     if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                         inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                 }
@@ -319,9 +324,14 @@ cell *vtog(string vfilename)
                     }
                     else if (*it1 == 0)
                     {
+                        cell* notcell = new cell("*","!",false,0);
                         cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "p", false, 0);
-                        iresult->addPrev(prev);
-                        prev->addNext(iresult);
+                        // iresult->addPrev(prev);
+                        // prev->addNext(iresult);
+                        notcell->addPrev(prev);
+                        prev->addNext(notcell);
+                        iresult->addPrev(notcell);
+                        notcell->addNext(iresult);
                         if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
                             inputcell.insert(pair<string, cell *>(prev->getName(), prev));
                     }
@@ -371,8 +381,8 @@ cell *vtog(string vfilename)
                             {
                                 (*cprev)->addPrev(prev);
                                 prev->addNext(*cprev);
-                                if ((*cprev1)->getN() == 0)
-                                    prev->setN(0);
+                                // if ((*cprev1)->getN() == 0)
+                                //     prev->setN(0);
                                 (*cprev)->getPrev().erase(cprev1);
                                 // delete *cprev1;
                             }
@@ -380,8 +390,8 @@ cell *vtog(string vfilename)
                     }
                     else if ((*cprev)->getName() == (*it)) // 单一节点
                     {
-                        if((*cprev)->getN() == 0)
-                            prev->setN(0);
+                        // if((*cprev)->getN() == 0)
+                        //     prev->setN(0);
                         next->getPrev().erase(cprev);
                         /// delete *cprev;
                         next->addPrev(prev);
@@ -438,11 +448,23 @@ void print_tree(cell *root, int i)
         return;
     string spaces(15, ' ');
     cout << i;
-    cout << spaces << root->getName() + " " + root->getOp()+" ";
-    cout<<root->getN()<< endl;
+    cout << spaces << root->getName() + " " + root->getOp()+" "<<endl;
+    // cout<<root->getN()<< endl;
     vector<cell *> &prev = root->getPrev();
     for (auto c : prev)
     {
         print_tree(c, i + 1);
     }
+}
+
+void destory(cell* root)
+{
+    if(root == nullptr)
+        return;
+    vector<cell*> prev = root->getPrev();
+    for(auto c:prev)
+    {
+        destory(c);
+    }
+    delete root;    
 }

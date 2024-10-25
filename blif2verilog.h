@@ -87,7 +87,7 @@ private:
     string op;  //如果该节点为"p"，则为单一元素,如果为 & 或 |，则为 "name = prev1 op prve2..."
     bool isnop;
     string name; //如果该字段为"*",则该cell为中间节点
-    int n ;  //   0 = !
+    // int n ;  //   0 = !
 
 public:
     cell(string name, string op, bool isnop, int n);
@@ -106,8 +106,8 @@ public:
     bool getIsnop();
     void setOp(string op);
     void setName(string name);
-    int getN();
-    void setN(int n);
+    // int getN();
+    // void setN(int n);
     
 };
 
@@ -117,3 +117,5 @@ cell *vtog(std::string vfilename);
 std::vector<std::string> split_blank(const std::string &str);
 
 void print_tree(cell *root,int i);
+
+void destory(cell *root);

@@ -14,6 +14,6 @@ int main()
         print_tree(c,0);
         cout << endl;
     }
-
+    //destory(hnop);
     return 0;
 }
