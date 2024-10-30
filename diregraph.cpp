@@ -18,6 +18,6 @@ int main()
         print_tree(c,0);
         cout << endl;
     }
-    destory(hnop);
+    destroy(hnop);
     return 0;
 }

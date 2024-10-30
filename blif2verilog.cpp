@@ -469,7 +469,7 @@ void collect(cell *root, set<cell *> &cells)
         collect(c, cells);
 }
 
-void destory(cell *root)
+void destroy(cell *root)
 {
     if (root == nullptr)
         return;

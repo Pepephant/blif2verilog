@@ -119,4 +119,4 @@ std::vector<std::string> split_blank(const std::string &str);
 void print_tree(cell *root, int i);
 
 void collect(cell *root, set<cell *> &s);
-void destory(cell *root);
+void destroy(cell *root);
