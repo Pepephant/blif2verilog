@@ -7,7 +7,8 @@ int main()
 {
     string blif_file = "./test1.blif";
     cell * hnop = vtog(blif_file);
-    ML_RCS(hnop);
+    // ML_RCS_enumerate(fnop);
+    // ML_RCS(hnop);
     // vector<string> a = {"../test.blif", "../test2.blif"};
     // for (auto it = a.begin(); it < a.end(); it++)
     //     cout << *it << endl;

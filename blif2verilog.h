@@ -91,7 +91,6 @@ private:
     // int n ;  //   0 = !
 
 public:
-    bool isd = false;
     cell(string name, string op, bool isnop, int n);
     // cell(string op, bool isnop);
     // cell(bool isnop);
@@ -119,4 +118,5 @@ std::vector<std::string> split_blank(const std::string &str);
 
 void print_tree(cell *root, int i);
 
+void collect(cell *root, set<cell *> &s);
 void destory(cell *root);

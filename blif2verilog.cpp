@@ -291,7 +291,7 @@ cell *vtog(string vfilename)
                 }
                 else if (*it == 0)
                 {
-                    cell *notcell = new cell("*","!",false,0);
+                    cell *notcell = new cell("*", "!", false, 0);
                     cell *prev = new cell(inputs.getInputs()[it - value.begin()], "p", false, 0);
                     // c->addPrev(prev);
                     // prev->addNext(c);
@@ -324,7 +324,7 @@ cell *vtog(string vfilename)
                     }
                     else if (*it1 == 0)
                     {
-                        cell* notcell = new cell("*","!",false,0);
+                        cell *notcell = new cell("*", "!", false, 0);
                         cell *prev = new cell(inputs.getInputs()[it1 - it->begin()], "p", false, 0);
                         // iresult->addPrev(prev);
                         // prev->addNext(iresult);
@@ -425,8 +425,8 @@ cell *vtog(string vfilename)
         top->addNext(hnop);
         hnop->addPrev(top);
     }
-    // return hnop;
-    return fnop;
+    return hnop;
+    // return fnop;
 }
 
 cell::~cell()
@@ -449,7 +449,7 @@ void print_tree(cell *root, int i)
         return;
     string spaces(15, ' ');
     cout << i;
-    cout << spaces << root->getName() + " " + root->getOp()+" "<<endl;
+    cout << spaces << root->getName() + " " + root->getOp() + " " << endl;
     // cout<<root->getN()<< endl;
     vector<cell *> &prev = root->getPrev();
     for (auto c : prev)
@@ -458,19 +458,23 @@ void print_tree(cell *root, int i)
     }
 }
 
-void cell::destory()
+void collect(cell *root, set<cell *> &cells)
 {
-    if(!this->isd)
-        delete this;
-}
-void destory(cell* root)
-{
-    if(root == nullptr)
+
+    if (root == nullptr)
         return;
-    vector<cell*> prev = root->getPrev();
-    for(auto c:prev)
-    {
-        destory(c);
-    }
-    root->destory();    
+    cells.insert(root);
+    vector<cell *> &prev = root->getPrev();
+    for (auto c : prev)
+        collect(c, cells);
+}
+
+void destory(cell *root)
+{
+    if (root == nullptr)
+        return;
+    set<cell *> cells;
+    collect(root, cells);
+    for(auto c:cells)
+        delete c;
 }
