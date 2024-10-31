@@ -18,11 +18,11 @@ int main()
     // for (auto it = a.begin(); it < a.end(); it++)
     //     cout << *it << endl;
     vector<cell*>& v = hnop->getPrev();
-    // for(cell* c:v)
-    // {
-    //     print_tree(c,0);
-    //     cout << endl;
-    // }
+    for(cell* c:v)
+    {
+        print_tree(c,0);
+        cout << endl;
+    }
     destroy(hnop);
     return 0;
 }

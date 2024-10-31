@@ -270,7 +270,7 @@ cell *vtog(string vfilename)
     }
     // 遍历ns，生成cell
     map<string, cell *> cells;
-    map<string, cell *> inputcell;
+    map<string, vector<cell *>> inputcell;
     for (auto it = ns.begin(); it < ns.end(); ++it)
     {
         names n = *it;
@@ -287,7 +287,11 @@ cell *vtog(string vfilename)
                     c->addPrev(prev);
                     prev->addNext(c);
                     if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
-                        inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                    {
+                        vector<cell *> a;
+                        a.push_back(prev);
+                        inputcell.insert(pair<string, vector<cell *>>(prev->getName(), a));
+                    }
                 }
                 else if (*it == 0)
                 {
@@ -300,7 +304,11 @@ cell *vtog(string vfilename)
                     c->addPrev(notcell);
                     notcell->addNext(c);
                     if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
-                        inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                    {
+                        vector<cell *> a;
+                        a.push_back(prev);
+                        inputcell.insert(pair<string, vector<cell *>>(prev->getName(), a));
+                    }
                 }
             // cells.push_back(c);
             cells.insert(pair<string, cell *>(c->getName(), c));
@@ -320,7 +328,11 @@ cell *vtog(string vfilename)
                         iresult->addPrev(prev);
                         prev->addNext(iresult);
                         if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
-                            inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                        {
+                            vector<cell *> a;
+                            a.push_back(prev);
+                            inputcell.insert(pair<string, vector<cell *>>(prev->getName(), a));
+                        }
                     }
                     else if (*it1 == 0)
                     {
@@ -333,7 +345,11 @@ cell *vtog(string vfilename)
                         iresult->addPrev(notcell);
                         notcell->addNext(iresult);
                         if (find(inputs.getInputs().begin(), inputs.getInputs().end(), prev->getName()) != inputs.getInputs().end())
-                            inputcell.insert(pair<string, cell *>(prev->getName(), prev));
+                        {
+                            vector<cell *> a;
+                            a.push_back(prev);
+                            inputcell.insert(pair<string, vector<cell *>>(prev->getName(), a));
+                        }
                     }
                 }
                 c->addPrev(iresult);
@@ -425,9 +441,12 @@ cell *vtog(string vfilename)
     // }
     for (auto it = in.begin(); it < in.end(); ++it)
     {
-        cell *bottom = inputcell.find(*it)->second;
-        bottom->addPrev(fnop);
-        fnop->addNext(bottom);
+        vector<cell *> bottom = inputcell.find(*it)->second;
+        for (auto i = bottom.begin(); i != bottom.end();++i)
+        {
+            (*i)->addPrev(fnop);
+            fnop->addNext(*i);
+        }
         //cout << bottom->getName() << endl;
     }
     for (auto it = out.begin(); it < out.end(); ++it)
@@ -436,7 +455,7 @@ cell *vtog(string vfilename)
         top->addNext(hnop);
         hnop->addPrev(top);
     }
-    //return hnop;
+    // return hnop;
     return fnop;
 }
 
