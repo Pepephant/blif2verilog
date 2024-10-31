@@ -413,11 +413,22 @@ cell *vtog(string vfilename)
     cell *hnop = new cell("hnop", "p", true, 1);
     vector<string> in = inputs.getInputs();
     vector<string> out = outputs.getOutputs();
-    for (auto it = inputcell.begin(); it != inputcell.end(); ++it)
+    // for (auto it = inputcell.begin(); it != inputcell.end(); ++it)
+    // {
+    //     //cout << it->first << endl;
+    //     if(find(in.begin(),in.end(),it->first) != in.end())
+    //     {
+    //         cell *bottom = it->second;
+    //         bottom->addPrev(fnop);
+    //         fnop->addNext(bottom);
+    //     }
+    // }
+    for (auto it = in.begin(); it < in.end(); ++it)
     {
-        cell *bottom = it->second;
+        cell *bottom = inputcell.find(*it)->second;
         bottom->addPrev(fnop);
         fnop->addNext(bottom);
+        //cout << bottom->getName() << endl;
     }
     for (auto it = out.begin(); it < out.end(); ++it)
     {
@@ -425,8 +436,8 @@ cell *vtog(string vfilename)
         top->addNext(hnop);
         hnop->addPrev(top);
     }
-    return hnop;
-    // return fnop;
+    //return hnop;
+    return fnop;
 }
 
 cell::~cell()
